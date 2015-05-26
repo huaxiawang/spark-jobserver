@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns="http://www.w3.org/1999/html">
   <head>
     <title>Spark Jobserver UI</title>
     <meta charset="utf-8">
@@ -23,6 +23,24 @@
     </ul>
     <div class="tab-content">
       <div class="tab-pane active" id="jobs">
+        <div class="job-submit">
+          <form enctype="multipart/form-data">
+            <div>
+              <label>Input Data:&nbsp;&nbsp;&thinsp;&thinsp;&thinsp;</label>
+              <input id="job-input" type="text" placeholder="input.string=a b c a b see">
+            </div>
+            <div>
+              <label>App Name:&nbsp;&nbsp;&thinsp;&thinsp;</label>
+              <input id="job-name" type="text" placeholder="test">
+            </div>
+            <div>
+              <label>Class Path:&nbsp;&nbsp;</label>
+              <input id="job-class" type="text" placeholder="spark.jobserver.WordCountExample">
+            </div>
+            <br>
+            <input id="job-submit-button" type="submit">
+          </form>
+        </div>
         <div class="panel panel-info">
           <div class="panel-heading">Running Jobs</div>
           <div class="panel-body">
@@ -95,6 +113,21 @@
         </div>
       </div>
       <div class="tab-pane" id="jars">
+        <div class="jar-submit">
+          <form enctype="multipart/form-data">
+            <div>
+              <label>Upload file:&nbsp;&nbsp;</label>
+              <input id="upload-file" name="file" type="file">
+            </div>
+            <div>
+              <label>App Name:&nbsp;&nbsp;</label>
+              <input id="upload-app" type="text" placeholder="App Name">
+            </div>
+            <br>
+            <input id="upload-button" type="submit" value="Upload">
+          </form>
+          <div id="job-submit-status"></div>
+        </div>
         <div class="panel">
           <div class="panel-heading"></div>
           <div class="panel-body">
@@ -112,5 +145,75 @@
         </div>
       </div>
     </div>
+    <div class="tooltip" style="display: none">
+    </div>
+
+    <script>
+      var validated = false, file;
+      $(":file").change(function () {
+        file = this.files[0];
+        var name = file.name;
+        var type = file.type;
+        var size = file.size;
+
+        if (name.length < 1) {
+        }
+        else if (size > 30000000) {
+          alert("File is too big!");
+        }
+        else if (type != 'application/java-archive') {
+          alert("File doesn't match jar!")
+        }
+        else {
+          validated = true;
+        }
+      });
+
+      $("#upload-button").click(function(e) {
+        e.preventDefault();
+        var appName = $("#upload-app").val();
+        if(!validated){
+          alert("File is not of the right format or too big!")
+        }
+        else if (appName == undefined || appName == ""){
+          alert("App Name cannot be empty!");
+        }
+        else {
+          $.ajax({
+            url: "/jars/"+appName ,
+            type: "POST",
+            data: file,
+            cache: false,
+            contentType: false,
+            processData: false,
+            complete: function (request) {
+              getJars();
+              console.log(request.responseText);
+            }
+          });
+
+        }
+      });
+
+      $("#job-submit-button").click(function (e) {
+        e.preventDefault();
+        var appName = $("#job-name").val();
+        var classPath = $("#job-class").val();
+        var inputs = $("#job-input").val();
+        $.ajax({
+          url: "/jobs?appName="+appName+"&classPath="+classPath,
+          type: "POST",
+          data: inputs,
+          cache: false,
+          contentType: false,
+          processData: false,
+          complete: function (request) {
+            getJobs();
+            $("#job-submit-status").text(request.responseText);
+            console.log(request.responseText);
+          }
+        })
+      });
+    </script>
   </body>
 </html>

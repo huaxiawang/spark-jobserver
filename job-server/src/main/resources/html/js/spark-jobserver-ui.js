@@ -10,7 +10,7 @@ function getJobs() {
       $.each(jobs, function(key, job) {
         var items = [];
         items.push("<tr>");
-        items.push("<td>" + job.jobId + "</td>");
+        items.push("<td id='jobId' onmouseover='getJobResult(this)' onmouseout='hideTooltip()'>" + job.jobId + "</td>");
         items.push("<td>" + job.classPath + "</td>");
         items.push("<td>" + job.context + "</td>");
         items.push("<td>" + job.startTime + "</td>");
@@ -59,6 +59,26 @@ function getJars() {
         $('#jarsTable > tbody:last').append(items.join(""));
       });
     });
+}
+
+function getJobResult(e) {
+  var position = $(e).position();
+  $.getJSON(
+      '/jobs/'+ $(e).text(),
+      '',
+      function (json) {
+        if(json) {
+          var tooltip = $('div.tooltip');
+          tooltip.show();
+          tooltip.html("<pre>"+JSON.stringify(json, null, 2)+"</pre>");
+          tooltip.css({top: position.top - 50, left: position.left + 300});
+        }
+      }
+  );
+}
+
+function hideTooltip() {
+  $('div.tooltip').hide()
 }
 
 $(document).ready(getJobs());
