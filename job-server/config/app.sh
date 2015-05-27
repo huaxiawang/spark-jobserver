@@ -11,7 +11,6 @@ LOG_DIR=/Users/hwang/jobServer/log
 PIDFILE=spark-jobserver.pid
 SPARK_HOME=/usr/local/spark
 SPARK_CONF_DIR=$SPARK_HOME/conf
-EXTRA_JAR=/Users/hwang/jobServer/mysql-connector.jar
 # Only needed for Mesos deploys
 # SPARK_EXECUTOR_URI=/home/spark/spark-0.8.0.tar.gz
 # Only needed for YARN running outside of the cluster
