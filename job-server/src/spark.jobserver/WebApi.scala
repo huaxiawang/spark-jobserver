@@ -47,7 +47,7 @@ class WebApi(system: ActorSystem,
 
   val logger = LoggerFactory.getLogger(getClass)
 
-  val myRoutes = jarRoutes ~ contextRoutes ~ jobRoutes ~ healthzRoutes ~ otherRoutes
+  val myRoutes = jarRoutes ~ contextRoutes ~ jobRoutes ~ healthzRoutes ~ jobDetail ~ otherRoutes
 
   def start() {
     logger.info("Starting browser web service...")
@@ -155,6 +155,18 @@ class WebApi(system: ActorSystem,
     get { ctx =>
       logger.info("Receiving healthz check request")
       ctx.complete("OK")
+    }
+  }
+
+  def jobDetail: Route = get {
+    implicit val ar = actorRefFactory
+
+    path("jobDetail") {
+      // Main index.html page
+      getFromResource("html/jobDetail.html")
+    } ~ pathPrefix("html") {
+      // Static files needed by index.html
+      getFromResourceDirectory("html")
     }
   }
 

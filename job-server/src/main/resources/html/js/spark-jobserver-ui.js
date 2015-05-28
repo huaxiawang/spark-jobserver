@@ -10,7 +10,7 @@ function getJobs() {
       $.each(jobs, function(key, job) {
         var items = [];
         items.push("<tr>");
-        items.push("<td id='jobId' onmouseover='getJobResult(this)' onmouseout='hideTooltip()'>" + job.jobId + "</td>");
+        items.push("<td><a href='#' id='jobId' onclick='getJobDetail(this)' onmouseover='getJobResult(this)' onmouseout='hideTooltip()'>"+job.jobId+"</a></td>");
         items.push("<td>" + job.classPath + "</td>");
         items.push("<td>" + job.context + "</td>");
         items.push("<td>" + job.startTime + "</td>");
@@ -75,6 +75,14 @@ function getJobResult(e) {
         }
       }
   );
+}
+
+function getJobDetail(e) {
+  event.preventDefault();
+  var jobId = $(e).text();
+  if(jobId != undefined || jobId != null) {
+    window.location = '/jobDetail?jobId='+jobId
+  }
 }
 
 function hideTooltip() {

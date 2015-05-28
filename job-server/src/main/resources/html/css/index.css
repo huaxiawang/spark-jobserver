@@ -24,15 +24,28 @@ div.tooltip pre {
 }
 
 .jar-submit {
-  margin: 20px 0 20px 50px;
+  margin: 30px 0 20px 0;
+  text-align: center;
 }
 
 .jar-submit div {
-  margin-bottom: 10px;
+  margin-right: 50px;
+  display: inline;
+}
+
+.jar-submit input[type="file"] {
+  display: inline;
+  line-height: normal;
 }
 
 .job-submit {
-  margin: 20px 0 20px 50px;
+  margin: 30px 0 20px 0;
+  text-align: center;
+}
+
+.job-submit div {
+  margin-right: 50px;
+  display: inline;
 }
 
 .job-submit input[type="text"] {
@@ -45,4 +58,32 @@ input[type="submit"] {
   margin: -10px 0 10px 0;
   background-color: #ffffff;
   color: #000000;
+}
+
+#jobDetail {
+  width: 500px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+#jobDetailChart {
+  text-align: center;
+  margin-top: 30px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+#jobDetailChart div {
+  display: inline;
+}
+
+#chart1 {
+  width: 400px;
+  float: left;
+  margin-right: 100px;
+}
+
+#chart2 {
+  width: 800px;
+  float: left;
 }
