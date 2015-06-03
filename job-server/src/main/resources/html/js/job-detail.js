@@ -26,7 +26,7 @@ function showJobDetail(jobId) {
         //var data3 = sunburstCharDataTransform(getData());
         nv.addGraph(function() {
           var chart = nv.models.sunburstChart();
-          chart.color(d3.scale.category20());
+          chart.color(d3.scale.category20c());
           d3.select("#chart svg")
               .datum(data3)
               .call(chart);
@@ -83,5 +83,15 @@ function sunburstCharDataTransform(json) {
 }
 
 function capitalize(string) {
-  return string.charAt(0) + string.slice(1).toLowerCase()
+  if(string.length <= 2){
+    return string
+  }
+  else{
+    var res = '';
+    var words = string.split(' ');
+    words.forEach(function (entry) {
+      res += (entry.charAt(0) + entry.slice(1).toLowerCase() + ' ')
+    })
+
+  }
 }

@@ -69,12 +69,13 @@ input[type="submit"] {
 }
 
 #jobDetailChart {
+  height: 600px;
   text-align: center;
   margin-top: 30px;
   margin-left: auto;
   margin-right: auto;
 }
 
-#chart3 {
+#chart {
   height: 600px;
 }
