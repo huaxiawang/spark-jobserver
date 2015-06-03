@@ -27,15 +27,15 @@
           <form enctype="multipart/form-data">
             <div>
               <label>Input Data:&nbsp;&nbsp;&thinsp;&thinsp;&thinsp;</label>
-              <input id="job-input" type="text" placeholder="input.string=a b c a b see">
+              <input id="job-input" type="text" placeholder="input.state=MI,input.specialty=Neurology">
             </div>
             <div>
               <label>App Name:&nbsp;&nbsp;&thinsp;&thinsp;</label>
-              <input id="job-name" type="text" placeholder="test">
+              <input id="job-name" type="text" placeholder="predict">
             </div>
             <div>
               <label>Class Path:&nbsp;&nbsp;</label>
-              <input id="job-class" type="text" placeholder="spark.jobserver.WordCountExample">
+              <input id="job-class" type="text" placeholder="spark.predict.predictJob">
             </div>
             <input id="job-submit-button" type="submit">
           </form>
@@ -207,7 +207,7 @@
           processData: false,
           complete: function (request) {
             getJobs();
-            $("#job-submit-status").text(request.responseText);
+            //$("#job-submit-status").text(request.responseText);
             console.log(request.responseText);
           }
         })
