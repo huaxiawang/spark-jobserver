@@ -14,28 +14,21 @@ function getURLParameter(sParam) {
 }
 
 function showJobDetail(jobId) {
-  $.getJSON(
-    '/jobs/'+ jobId,
-    '',
-    function (json) {
-      if(json) {
-        $("#jobDetail").html("<pre>"+JSON.stringify(json, null, 2)+"</pre>");
-        console.log(json);
+  var json = getData();
+  $("#jobDetail").html("<pre>"+JSON.stringify(json, null, 2)+"</pre>");
+  console.log(json);
 
-        var data = sunburstCharDataTransform(json.result);
-        //var data = sunburstCharDataTransform(getData());
-        nv.addGraph(function() {
-          var chart = nv.models.sunburstChart();
-          chart.color(d3.scale.category20c());
-          d3.select("#chart svg")
-              .datum(data)
-              .call(chart);
-          nv.utils.windowResize(chart.update);
-          return chart;
-        });
-      }
-    }
-  );
+  var data = sunburstCharDataTransform(json.result);
+  //var data = sunburstCharDataTransform(getData());
+  nv.addGraph(function() {
+    var chart = nv.models.sunburstChart();
+    chart.color(d3.scale.category20c());
+    d3.select("#chart svg")
+        .datum(data)
+        .call(chart);
+    nv.utils.windowResize(chart.update);
+    return chart;
+  });
 }
 
 function pieChartDataTransform(json) {
