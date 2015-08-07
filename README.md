@@ -1,10 +1,12 @@
 [![Build Status](https://travis-ci.org/spark-jobserver/spark-jobserver.svg?branch=master)](https://travis-ci.org/spark-jobserver/spark-jobserver)
 
+[![Join the chat at https://gitter.im/spark-jobserver/spark-jobserver](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/spark-jobserver/spark-jobserver?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 spark-jobserver provides a RESTful interface for submitting and managing [Apache Spark](http://spark-project.org) jobs, jars, and job contexts.
 This repo contains the complete Spark job server project, including unit tests and deploy scripts.
 It was originally started at [Ooyala](http://www.ooyala.com), but this is now the main development repo.
 
-See [Troubleshooting Tips](doc/troubleshooting.md).
+See [Troubleshooting Tips](doc/troubleshooting.md) as well as [Yarn tips](doc/yarn.md).
 
 ## Users
 
@@ -13,14 +15,19 @@ See [Troubleshooting Tips](doc/troubleshooting.md).
 - Ooyala
 - Netflix
 - Avenida.com
+- GumGum
+- Fuse Elements
+- Frontline Solvers
+- Aruba Networks
+- [Zed Worldwide](http://www.zed.com)
 
 ## Features
 
 - *"Spark as a Service"*: Simple REST interface for all aspects of job, context management
-- Support for Spark SQL Contexts/jobs and custom job contexts!  See [Contexts](doc/contexts.md).
+- Support for Spark SQL, Hive, Streaming Contexts/jobs and custom job contexts!  See [Contexts](doc/contexts.md).
 - Supports sub-second low-latency jobs via long-running job contexts
 - Start and stop job contexts for RDD sharing and low-latency jobs; change resources on restart
-- Kill running jobs via stop context
+- Kill running jobs via stop context and delete job
 - Separate jar uploading step for faster job startup
 - Asynchronous and synchronous job API.  Synchronous API is great for low latency jobs!
 - Works with Standalone Spark as well as Mesos and yarn-client
@@ -36,10 +43,17 @@ See [Troubleshooting Tips](doc/troubleshooting.md).
 | 0.4.0       | 1.0.2         |
 | 0.4.1       | 1.1.0         |
 | 0.5.0       | 1.2.0         |
+| 0.5.1       | 1.3.0         |
 
 For release notes, look in the `notes/` directory.  They should also be up on [ls.implicit.ly](http://ls.implicit.ly/spark-jobserver/spark-jobserver).
 
-## Quick start / development mode
+## Quick Start
+
+The easiest way to get started is to try the [Docker container](doc/docker.md) which prepackages a Spark distribution with the job server and lets you start and deploy it.
+
+## Development mode
+
+The example walk-through below shows you how to use the job server with an included example job, by running the job server in local development mode in SBT.  This is not an example of usage in production.
 
 You need to have [SBT](http://www.scala-sbt.org/release/docs/Getting-Started/Setup.html) installed.
 
@@ -64,6 +78,7 @@ EXTRA_JAR for adding a jar to the classpath.
 
 ### WordCountExample walk-through
 
+#### Package Jar - Send to Server
 First, to package the test jar containing the WordCountExample: `sbt job-server-tests/package`.
 Then go ahead and start the job server using the instructions above.
 
@@ -72,6 +87,7 @@ Let's upload the jar:
     curl --data-binary @job-server-tests/target/job-server-tests-$VER.jar localhost:8090/jars/test
     OK⏎
 
+#### Ad-hoc Mode - Single, Unrelated Jobs (Transient Context)
 The above jar is uploaded as app `test`.  Next, let's start an ad-hoc word count job, meaning that the job
 server will create its own SparkContext, and return a job ID for subsequent querying:
 
@@ -105,6 +121,9 @@ From this point, you could asynchronously query the status and results:
 Note that you could append `&sync=true` when you POST to /jobs to get the results back in one request, but for
 real clusters and most jobs this may be too slow.
 
+You can also append `&timeout=XX` to extend the request timeout for `sync=true` requests.
+
+#### Persistent Context Mode - Faster & Required for Related Jobs
 Another way of running this job is in a pre-created context.  Start a new context:
 
     curl -d "" 'localhost:8090/contexts/test-context?num-cpu-cores=4&memory-per-node=512m'
@@ -135,7 +154,11 @@ In your `build.sbt`, add this to use the job server jar:
 
 	resolvers += "Job Server Bintray" at "https://dl.bintray.com/spark-jobserver/maven"
 
-	libraryDependencies += "spark.jobserver" % "job-server-api" % "0.5.0" % "provided"
+	libraryDependencies += "spark.jobserver" %% "job-server-api" % "0.5.1" % "provided"
+
+If a SQL or Hive job/context is desired, you also want to pull in `job-server-extras`:
+
+    libraryDependencies += "spark.jobserver" %% "job-server-extras" % "0.5.1" % "provided"
 
 For most use cases it's better to have the dependencies be "provided" because you don't want SBT assembly to include the whole job server jar.
 
@@ -187,7 +210,7 @@ To use this feature, the SparkJob needs to mixin `NamedRddSupport`:
 ```scala
 object SampleNamedRDDJob  extends SparkJob with NamedRddSupport {
     override def runJob(sc:SparkContext, jobConfig: Config): Any = ???
-    override def validate(sc:SparkContext, config: Contig): SparkJobValidation = ???
+    override def validate(sc:SparkContext, config: Config): SparkJobValidation = ???
 }
 ```
 
@@ -217,6 +240,9 @@ def validate(sc:SparkContext, config: Contig): SparkJobValidation = {
    it to the remotes you have configured in `<environment>.sh`
 3. On the remote server, start it in the deployed directory with `server_start.sh` and stop it with `server_stop.sh`
 
+The `server_start.sh` script uses `spark-submit` under the hood and may be passed any of the standard extra arguments from `spark-submit`.
+
+NOTE: by default the assembly jar from `job-server-extras`, which includes support for SQLContext and HiveContext, is used.  If you face issues with all the extra dependencies, consider modifying the install scripts to invoke `sbt job-server/assembly` instead, which doesn't include the extra dependencies.
 
 Note: to test out the deploy to a local staging dir, or package the job server for Mesos,
 use `bin/server_package.sh <environment>`.
@@ -257,7 +283,10 @@ the REST API.
     GET /jobs                - Lists the last N jobs
     POST /jobs               - Starts a new job, use ?sync=true to wait for results
     GET /jobs/<jobId>        - Gets the result or status of a specific job
+    DELETE /jobs/<jobId>     - Kills the specified job
     GET /jobs/<jobId>/config - Gets the job configuration
+
+For details on the Typesafe config format used for input (JSON also works), see the [Typesafe Config docs](https://github.com/typesafehub/config).
 
 ### Context configuration
 
@@ -301,6 +330,8 @@ To pass settings directly to the sparkConf that do not use the "spark." prefix "
     }
 
 For the exact context configuration parameters, see JobManagerActor docs as well as application.conf.
+
+Also see the [yarn doc](doc/yarn.md) for more tips.
 
 ### Job Result Serialization
 
@@ -358,11 +389,12 @@ Copyright(c) 2014, Ooyala, Inc.
 
 ## TODO
 
+- Have server_start.sh use spark-submit (#155, others)  - would help resolve classpath/dependency issues.
+- More debugging for classpath issues
+- Update .g8 template, consider creating Activator template for sample job	
 - Add Swagger support.  See the spray-swagger project.
 - Implement an interactive SQL window.  See: [spark-admin](https://github.com/adatao/spark-admin)
 
-- Use `SparkContext.setJobGroup` with the job ID
-- Support job cancellation via `cancelJobGroup`
 - Stream the current job progress via a Listener
 - Add routes to return stage info for a job.  Persist it via DAO so that we can always retrieve stage / performance info
   even for historical jobs.  This would be pretty kickass.

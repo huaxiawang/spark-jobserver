@@ -10,7 +10,7 @@ object SqlJobSpec extends JobSpecConfig {
   override val contextFactory = classOf[SQLContextFactory].getName
 }
 
-class SqlJobSpec extends JobSpecBase(SqlJobSpec.getNewSystem) {
+class SqlJobSpec extends ExtrasJobSpecBase(SqlJobSpec.getNewSystem) {
   import scala.concurrent.duration._
   import CommonMessages._
   import JobManagerSpec.MaxJobsPerContext
@@ -26,7 +26,7 @@ class SqlJobSpec extends JobSpecBase(SqlJobSpec.getNewSystem) {
   before {
     dao = new InMemoryDAO
     manager =
-      system.actorOf(JobManagerActor.props(dao, "test", SqlJobSpec.config, false))
+      system.actorOf(JobManagerActor.props(dao, "test", SqlJobSpec.contextConfig, false))
   }
 
   describe("Spark SQL Jobs") {
