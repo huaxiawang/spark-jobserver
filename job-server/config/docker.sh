@@ -13,4 +13,4 @@ SPARK_HOME=/usr/local/spark
 SPARK_CONF_DIR=$SPARK_HOME/conf
 SCALA_VERSION=2.10.4
 # For Docker, always run start script as foreground
-JOBSERVER_FG=1
+# JOBSERVER_FG=1
